@@ -38,7 +38,7 @@ public class CounterExt extends HttpServlet {
 
     // ファイルオブジェクトの新規作成と参照ファイルのロード
     File file = new File(getServletContext().getRealPath("WEB-INF/counter.txt"));
-    // BufferReaderオブジェクトの生成
+    // BufferedReaderオブジェクトの生成
     BufferedReader fin = null;
 
     try{
