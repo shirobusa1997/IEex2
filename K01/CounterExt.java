@@ -1,5 +1,5 @@
 // ===========================================================
-// 情報環境実験II Information Environment Expression II
+// 情報環境実験II Information Environment Experiment II
 // 2018.10.16 第1回 Servlet
 // v1.0 CounterExt.java メインソース
 // s16t287 檜垣大地

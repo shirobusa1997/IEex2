@@ -1,5 +1,5 @@
 // ===========================================================
-// 情報環境実験II Information Environment Expression II
+// 情報環境実験II Information Environment Experiment II
 // 2018.10.16 第1回 Servlet
 // v1.0 ImageCounter.java メインソース
 // s16t287 檜垣大地
@@ -57,18 +57,12 @@ public class ImageCounter extends HttpServlet{
 
 	    out.printf("あなたは ");
 
-	    out.println("<img src='images/0.png' alt = '0'>");
-	    out.println("<img src='images/1.png' alt = '1'>");
-	    out.println("<img src='images/2.png' alt = '2'>");
-	    out.println("<img src='images/3.png' alt = '3'>");
-	    out.println("<img src='images/4.png' alt = '4'>");
-	    out.println("<img src='images/5.png' alt = '5'>");
-	    out.println("<img src='images/6.png' alt = '6'>");
-	    out.println("<img src='images/7.png' alt = '7'>");
-	    out.println("<img src='images/8.png' alt = '8'>");
-	    out.println("<img src='images/9.png' alt = '9'>");
+	    for (int i = 0; i < String.valueOf(count).length(); i++){
+    		out.printf("<img src='./images/%c.png' alt = '%c'>", String.valueOf(count).charAt(i), String.valueOf(count).charAt(i));
+	    }
 
-	    out.printf("%d番目の来訪者です。%n", count);
+		out.printf("番目の来訪者です。%n");
+
 	    out.println("</body></html>");
 	    out.close();
 	}
