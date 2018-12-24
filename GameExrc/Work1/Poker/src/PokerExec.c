@@ -59,7 +59,7 @@ char Deck[FILE_NAME_LEN];         // 山札ファイル
 int Disp_Mode;                    // 表示モード
 char Dir[DIR_NAME_LEN];           // ログディレクトリへのパス名
 FILE *Game_Log;                   // ゲームログへのファイルポインタ
-FILE *Result_Log;                     // 結果ログへのファイルポインタ
+FILE *Result_Log;                 // 結果ログへのファイルポインタ
 int Hand_Value[10] = {P0, P1, P2, P3, P4, P5, P6, P7, P8, P9};
 double Take_Weight[10] = {1.5, 1.5, 1.0, 2.0, 2.0};   // 傾斜掛率(2018年)
 
