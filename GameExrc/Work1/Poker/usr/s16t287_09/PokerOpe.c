@@ -71,7 +71,7 @@ typedef struct {
 // カード統計情報を格納するT_ANLZInfo型構造体として宣言します。
 typedef struct {
   int count;
-  int index[13];
+  int index[52];
 } T_ANLZInfo;
 
 //====================================================================
@@ -121,7 +121,7 @@ void initialize_T_ANLZInfo(T_ANLZInfo *array, int size){
   // 配列を含む、参照指定された変数を初期化します。
   for(i = 0; i < size; i++){
     array[i].count = 0;
-    for(j = 0; j < 13; j++){ array[i].index[j] = 0;}
+    for(j = 0; j < 52; j++){ array[i].index[j] = 0;}
   }
   return;
 }
@@ -141,8 +141,47 @@ void analyze_cardInfo(int *myhd, T_Info *t_i, T_ANLZInfo *numIndex, T_ANLZInfo *
   }
 }
 
+int decide_by_analizedDT(int *myhd, int *target, int size, int *myud, int us, int mode){
+  int i = 0, res, ans, tmp, token;
+  T_ANLZInfo numIndex[13];                 // 数値の重複数(1 ~ 13)
+  T_ANLZInfo symIndex[4];                  // 記号の重複数(SPADE, HEART, DIAMOND, CLUB)
+
+  initialize_T_ANLZInfo(numIndex, 13); initialize_T_ANLZInfo(symIndex, 4);
+
+  //if (us < 1) { return target[rand() % size]; }
+  for(i = 0; i < us; i++) {
+    tmp = myud[i] / 13;
+    (symIndex[tmp]).index[symIndex[tmp].count] = i;
+    symIndex[tmp].count++;
+    tmp = myud[i] % 13;
+    (numIndex[tmp]).index[numIndex[tmp].count] = i;
+    numIndex[tmp].count++;
+    i++;
+  }
+
+  if (mode) {
+    res = 13;
+    for (i = 0; i < size; i++){
+      if (res > (symIndex[myhd[target[i]]/ 13]).count) {
+        res = (symIndex[myhd[target[i]] / 13]).count; ans = target[i];
+      }
+    }
+    return ans;
+  } else {
+    res = 4;
+    for (i = 0; i < size; i++){
+      if (res > (numIndex[myhd[target[i]] % 13]).count) {
+        res = (numIndex[myhd[target[i]] % 13]).count; ans = target[i];
+      }
+    }
+    return ans;
+  }
+
+  return -1;
+}
+
 // 1~3ペアを重視した、役の期待と捨て札判定をする関数judgeFCです。
-int judgePair(T_Info *t_i, T_Info *hd_res, T_ANLZInfo *numIndex){
+int judgePair(int *myhd, T_Info *t_i, T_Info *hd_res, T_ANLZInfo *numIndex, int *myud, int us){
   // メンバ宣言
   int i = 0;                              // カウンタ変数
   int pair = 0;                           // 検出されたペア数
@@ -164,12 +203,13 @@ int judgePair(T_Info *t_i, T_Info *hd_res, T_ANLZInfo *numIndex){
     if (numIndex[i].count == 1) { trash[length] = (numIndex[i]).index[0]; length++; }
   }
   if (length > 0) {
-    return trash[rand() % length];
+    return decide_by_analizedDT(myhd, trash, length, myud, us, 0);
+    //return trash[rand() % length];
   } else { return -1; }
 }
 
 // フラッシュを重視した、役の期待と捨て札判定をする関数judgeFCです。
-int judgeFrash(T_Info *t_i, T_ANLZInfo *symIndex){
+int judgeFrash(int *myhd, T_Info *t_i, T_ANLZInfo *symIndex, int *myud, int us){
   // メンバ宣言
   int i, j;                               // カウンタ変数
   int target_symbol;                      // フラッシュを望める記号
@@ -213,7 +253,7 @@ int judgeFC(T_Info *t_i, T_ANLZInfo *numIndex) {
 }
 
 // ストレート成立が期待できる場合に、手札から捨てるべきカードを選択する、関数searchTrashです。
-int searchTrash(T_Info *t_i, T_ANLZInfo *numIndex, int s_combo, int e_combo) {
+int searchTrash(int *myhd, T_Info *t_i, T_ANLZInfo *numIndex, int s_combo, int e_combo, int *myud, int us) {
   int i, j;                               // カウンタ変数
   int length = 0;                         // 捨てるべきカードの数
   int trash[HNUM] = {0};                  // 捨てるべきカードの添字
@@ -251,7 +291,7 @@ int searchTrash(T_Info *t_i, T_ANLZInfo *numIndex, int s_combo, int e_combo) {
 }
 
 // ストレートを重視した、役の期待と捨て札判定をする関数judgeFCです。
-int judgeST(T_Info *t_i, T_ANLZInfo *numIndex) {
+int judgeST(int *myhd, T_Info *t_i, T_ANLZInfo *numIndex, int *myud, int us) {
   int i;                                // カウンタ変数
   int s_combo, e_combo;                 // カードの連続開始地点と終了地点    
   int length = 0;                       // 連続しているカードの数
@@ -270,33 +310,36 @@ int judgeST(T_Info *t_i, T_ANLZInfo *numIndex) {
   }
 
   // ストレート成立が見込める場合、連続列から外れたカードから、捨てるカードを選択します。
-  if (m_length == 4) { return searchTrash(t_i, numIndex, s_combo, e_combo); }
+  if (m_length == 4) { return searchTrash(myhd, t_i, numIndex, s_combo, e_combo, myud, us); }
 
   // 指定条件を満たせなかった場合、ストレートは見込めないものとみなします。
   return -10;
 }
 
-int decide_trash_hand(int *myhd, int *fd, T_Info *t_i, T_Info *hd_res, T_ANLZInfo *symIndex, T_ANLZInfo *numIndex){
+void decide_trash_hand(int *myhd, T_Info *t_i, T_Info *hd_res, T_ANLZInfo *symIndex, T_ANLZInfo *numIndex, int *myud, int us, int *hand){
   // メンバ変数宣言
-  int token_pair  = judgePair(t_i, hd_res, numIndex);   // ペア重視の捨て札
-  int token_flash = judgeFrash(t_i, symIndex);          // フラッシュ重視の捨て札
+  int length = 0;
+  int token_pair  = judgePair(myhd, t_i, hd_res, numIndex, myud, us);   // ペア重視の捨て札
+  int token_flash = judgeFrash(myhd, t_i, symIndex, myud, us);          // フラッシュ重視の捨て札
   int token_four  = judgeFC(t_i, numIndex);             // フォーカード重視の捨て札
-  int token_straight = judgeST(t_i, numIndex);          // ストレート重視の捨て札
+  int token_straight = judgeST(myhd, t_i, numIndex, myud, us);          // ストレート重視の捨て札
 
   // 優先順にトークンを比較し、正しく捨て札が指定されたものを、最終的な捨て札とします。
   // フォーカード判定が満たされた場合
-  if (token_four >= -1) { return token_four; }
+  if (token_four >= -1) { hand[length] = token_four; length++; }
 
   // ストレートフラッシュが見込めるか否か
-  if (token_straight == token_flash && token_flash >= -1) { return token_flash; }
+  if (token_straight == token_flash && token_flash >= -1) { hand[length] = token_flash; length++; }
 
   // ストレート判定が満たされた場合
-  if (token_straight >= -1) { return token_straight; }
+  if (token_straight >= -1) { hand[length] = token_straight; length++; }
   // フラッシュ判定が満たされた場合
   
-  if (token_flash >= -1) { return token_flash; }
+  if (token_flash >= -1) { hand[length] = token_flash; length++; }
   // 上位判定が満たされなかった場合
-  else { return token_pair; }
+  else { hand[length] = token_pair; length++; }
+
+  return;
 }
 
 int strategy(int hd[], int fd[], int cg, int tk, int ud[], int us)
@@ -305,34 +348,33 @@ int strategy(int hd[], int fd[], int cg, int tk, int ud[], int us)
   int i;
   int myhd[MYCARD_SIZE];
   int myud[CNUM];
+  int hand[5] = { -1 };
   int return_hand = -1;                      // 捨てるカード番号(-1は捨てない)
   T_Info t_i[MYCARD_SIZE];                   // 手札解析情報を付与した手札配列
-  T_Info u_i[CNUM];                          // 場札解析情報を付与した場札配列
   T_Info hd_res[MYCARD_SIZE];                // ペアロック後の手札配列
   T_ANLZInfo numIndex_c[13];                 // 数値の重複数(1 ~ 13)
   T_ANLZInfo symIndex_c[4];                  // 記号の重複数(SPADE, HEART, DIAMOND, CLUB)
-  T_ANLZInfo numIndex_u[13];                 // 数値の重複数(1 ~ 13)
-  T_ANLZInfo symIndex_u[4];                  // 記号の重複数(SPADE, HEART, DIAMOND, CLUB)
 
   // 初期化
   for (i = 0; i < MYCARD_SIZE; i++){ myhd[i] = hd[i]; }
   for (i = 0; i < CNUM; i++){ myud[i] = ud[i]; }
   initialize_T_ANLZInfo(numIndex_c, 13); initialize_T_ANLZInfo(symIndex_c, 4);
-  initialize_T_ANLZInfo(numIndex_u, 13); initialize_T_ANLZInfo(symIndex_u, 4);
 
   // 乱数生成設定(シード値は現在時刻)
   srand((unsigned)time(NULL));
 
   // 手札解析
   analyze_cardInfo(myhd, t_i, numIndex_c, symIndex_c, MYCARD_SIZE);
-  analyze_cardInfo(myud, u_i, numIndex_u, symIndex_u, CNUM);
 
   // 捨て札判定
   // すでに手札がフォーカード以上の役で構成されている場合、以降は打ち切りとする。
   if (poker_point(myhd) > FC){ return -1; }
 
   // 捨てるカードの選択
-  return_hand = decide_trash_hand(myhd, fd, t_i, hd_res, symIndex_c, numIndex_c);
+  // return_hand = 
+  decide_trash_hand(myhd, t_i, hd_res, symIndex_c, numIndex_c, myud, us, hand);
+
+  return_hand = decide_by_analizedDT(myhd, hand, 5, myud, us, 0);
 
   return return_hand;
 }
