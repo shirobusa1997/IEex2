@@ -270,7 +270,7 @@ int judgeST(T_Info *t_i, T_ANLZInfo *numIndex) {
   }
 
   // ストレート成立が見込める場合、連続列から外れたカードから、捨てるカードを選択します。
-  if (m_length == 4) { return searchTrash(t_i, numIndex, s_combo, e_combo); }
+  if (m_length >= 3) { return searchTrash(t_i, numIndex, s_combo, e_combo); }
 
   // 指定条件を満たせなかった場合、ストレートは見込めないものとみなします。
   return -10;
