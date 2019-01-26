@@ -142,7 +142,7 @@ void analyze_cardInfo(int *myhd, T_Info *t_i, T_ANLZInfo *numIndex, T_ANLZInfo *
 }
 
 // 1~3ペアを重視した、役の期待と捨て札判定をする関数judgeFCです。
-int judgePair(T_Info *t_i, T_Info *hd_res, T_ANLZInfo *numIndex){
+int judgePair(T_Info *t_i, T_ANLZInfo *numIndex){
   // メンバ宣言
   int i = 0;                              // カウンタ変数
   int pair = 0;                           // 検出されたペア数
@@ -169,7 +169,7 @@ int judgePair(T_Info *t_i, T_Info *hd_res, T_ANLZInfo *numIndex){
 }
 
 // フラッシュを重視した、役の期待と捨て札判定をする関数judgeFCです。
-int judgeFrash(T_Info *t_i, T_ANLZInfo *symIndex){
+int judgeFL(T_Info *t_i, T_ANLZInfo *symIndex){
   // メンバ宣言
   int i, j;                               // カウンタ変数
   int target_symbol;                      // フラッシュを望める記号
@@ -278,8 +278,8 @@ int judgeST(T_Info *t_i, T_ANLZInfo *numIndex) {
 
 int decide_trash_hand(int *myhd, int *fd, T_Info *t_i, T_Info *hd_res, T_ANLZInfo *symIndex, T_ANLZInfo *numIndex){
   // メンバ変数宣言
-  int token_pair  = judgePair(t_i, hd_res, numIndex);   // ペア重視の捨て札
-  int token_flash = judgeFrash(t_i, symIndex);          // フラッシュ重視の捨て札
+  int token_pair  = judgePair(t_i, numIndex);   // ペア重視の捨て札
+  int token_flash = judgeFL(t_i, symIndex);          // フラッシュ重視の捨て札
   int token_four  = judgeFC(t_i, numIndex);             // フォーカード重視の捨て札
   int token_straight = judgeST(t_i, numIndex);          // ストレート重視の捨て札
 
